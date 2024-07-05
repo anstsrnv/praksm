@@ -5,19 +5,29 @@ import math
 from scipy.fftpack import fft, ifft
 
 
-# Фильтр скользящего среднего
-def moving_window(x, wid):
+# Фильтр скользящего среднего (КИХ)
+def moving_window1(s, wid):
     a = []
-    for i in range(wid, len(signal)):
-        a.append(sum(signal[i - wid:i]) / wid)
+    s = [0]*wid+s
+    for i in range(wid, len(s)):
+        a.append(sum(s[i - wid:i]) / wid)
+    return a
+
+
+# Фильтр скользящего среднего (БИХ)
+def moving_window2(s, wid):
+    s = [0]*wid+s
+    a = [0]*wid
+    for i in range(wid, len(s)):
+        a.append(a[i-1]+(s[i]-s[i-wid])/wid)
     return a
 
 
 # Временной ряд дисперсий
 def t_var(s, n):
     d = []
-    m = np.mean(signal)
-    for el in signal:
+    m = np.mean(s)
+    for el in s:
         d.append((el-m)**2)
     return d
 
@@ -61,22 +71,26 @@ T_s = 1 / int(input('Введите частоту дискретизации (�
 n = int(input('Введите ширину окна: '))
 
 # Названия графиков
-titles_1 = ['Исходный сигнал', 'Сигнал после фильтрации скользящим окном шириной n = ' + str(n)]
+titles_1 = ['Исходный сигнал', 'Сигнал после фильтрации скользящим окном (КИХ) шириной n = ' + str(n), 'Сигнал после фильтрации скользящим окном (БИХ) шириной n = ' + str(n)]
 titles_2 = ['Исходный сигнал', 'Временной ряд дисперсий']
 titles_3 = ['Исходный сигнал', 'АКФ кольцевым смещением', 'АКФ при помощи БПФ']
 
 
 # Вывод графиков фильтр скользящего среднего
 plt.figure(figsize=(24, 8))
-for i in range(2):
-    plt.subplot(1, 2, i+1)
-    plt.title(titles_1[i])
+for i in range(3):
+    plt.subplot(1, 3, i+1)
+    plt.title(titles_1[i], fontsize=9)
     if i == 0:
         y = signal
         interval = [i * T_s for i in range(len(signal))]
     if i == 1:
-        y = moving_window(signal, n)
-        interval = interval[:-n]
+        y = moving_window1(signal, n)
+        #interval = interval[:-n]
+    if i == 2:
+        y = moving_window2(signal, n)
+        y = y[n:]
+        #interval = [i * T_s for i in range(len(signal))]
     plt.plot(interval, y)
 
 # Вывод графика временного ряда дисперсий
